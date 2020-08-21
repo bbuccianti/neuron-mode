@@ -45,7 +45,7 @@
 (require 'url-parse)
 (require 'url-util)
 (require 'simple)
-(require 'company)
+;;(require 'company)
 
 (defgroup neuron nil
   "A major mode for editing Zettelkasten notes with neuron."
@@ -1091,81 +1091,81 @@ link is a folgezettel of ordinary connection."
 
 ;; Completion
 
-(defun company-neuron--prefix ()
-  "Extract the completion prefix, triggered by entering an opening angle bracket."
-  (and (derived-mode-p 'neuron-mode)
-       (when (looking-back (rx "<" (group (+ (not (any ">"))))) nil)
-         (match-string 1))))
+;; (defun company-neuron--prefix ()
+;;   "Extract the completion prefix, triggered by entering an opening angle bracket."
+;;   (and (derived-mode-p 'neuron-mode)
+;;        (when (looking-back (rx "<" (group (+ (not (any ">"))))) nil)
+;;          (match-string 1))))
 
-(defun company-neuron--fuzzy-match-title (prefix candidate)
-  "Return whether PREFIX fuzzily matches the title of the CANDIDATE zettel."
-  (let ((full-title (alist-get 'zettelTitle (get-text-property 0 'zettel candidate))))
-    (cl-subsetp (string-to-list prefix)
-                (string-to-list full-title))))
+;; (defun company-neuron--fuzzy-match-title (prefix candidate)
+;;   "Return whether PREFIX fuzzily matches the title of the CANDIDATE zettel."
+;;   (let ((full-title (alist-get 'zettelTitle (get-text-property 0 'zettel candidate))))
+;;     (cl-subsetp (string-to-list prefix)
+;;                 (string-to-list full-title))))
 
-(defun company-neuron--propertize-completion-candidate (zettel)
-  "Propertize a zettel title to contain all information about ZETTEL.
-The resulting title is truncated and padded to fit the width given by
-`neuron-max-completion-width'."
-  (let* ((title (alist-get 'zettelTitle zettel))
-         (padded (s-pad-right neuron-max-completion-width " " title))
-         (truncated (s-truncate neuron-max-completion-width padded)))
-    (propertize truncated 'zettel zettel)))
+;; (defun company-neuron--propertize-completion-candidate (zettel)
+;;   "Propertize a zettel title to contain all information about ZETTEL.
+;; The resulting title is truncated and padded to fit the width given by
+;; `neuron-max-completion-width'."
+;;   (let* ((title (alist-get 'zettelTitle zettel))
+;;          (padded (s-pad-right neuron-max-completion-width " " title))
+;;          (truncated (s-truncate neuron-max-completion-width padded)))
+;;     (propertize truncated 'zettel zettel)))
 
-(defun company-neuron--all-candidates ()
-  "Propertize all cached zettels to provide completion candidates."
-  (mapcar #'company-neuron--propertize-completion-candidate neuron--zettel-cache))
+;; (defun company-neuron--all-candidates ()
+;;   "Propertize all cached zettels to provide completion candidates."
+;;   (mapcar #'company-neuron--propertize-completion-candidate neuron--zettel-cache))
 
-(defun company-neuron--candidates (prefix)
-  "Filter the candidates by fuzzily matching PREFIX against the candidates."
-  (cl-remove-if-not
-   (lambda (candidate) (company-neuron--fuzzy-match-title prefix candidate))
-   (company-neuron--all-candidates)))
+;; (defun company-neuron--candidates (prefix)
+;;   "Filter the candidates by fuzzily matching PREFIX against the candidates."
+;;   (cl-remove-if-not
+;;    (lambda (candidate) (company-neuron--fuzzy-match-title prefix candidate))
+;;    (company-neuron--all-candidates)))
 
-(defun company-neuron--completion-annotation (candidate)
-  "Annotate the completion CANDIDATE so that it includes the ID of the underlying zettel."
-  (let* ((zettel (get-text-property 0 'zettel candidate))
-         (annot (format "<%s>" (alist-get 'zettelID zettel))))
-    (concat " " (propertize annot 'face 'neuron-link-face))))
+;; (defun company-neuron--completion-annotation (candidate)
+;;   "Annotate the completion CANDIDATE so that it includes the ID of the underlying zettel."
+;;   (let* ((zettel (get-text-property 0 'zettel candidate))
+;;          (annot (format "<%s>" (alist-get 'zettelID zettel))))
+;;     (concat " " (propertize annot 'face 'neuron-link-face))))
 
-(defun company-neuron--completion-meta (candidate)
-  "Display information about the underlying zettel of CANDIDATE.
-The resulting string contains the ID, the full title of the zettel, as well as
-the list of its tags."
-  (let ((zettel (get-text-property 0 'zettel candidate)))
-    (neuron--propertize-zettel zettel)))
+;; (defun company-neuron--completion-meta (candidate)
+;;   "Display information about the underlying zettel of CANDIDATE.
+;; The resulting string contains the ID, the full title of the zettel, as well as
+;; the list of its tags."
+;;   (let ((zettel (get-text-property 0 'zettel candidate)))
+;;     (neuron--propertize-zettel zettel)))
 
-(defun company-neuron--post-completion-action (candidate)
-  "Delete the completed zettel title CANDIDATE and replace it with an actual neuron link."
-  (let ((begin (point))
-        (zettel (get-text-property 0 'zettel candidate)))
-    (when (re-search-backward (rx "<"))
-      (goto-char begin)
-      (delete-region begin (match-end 0))
-      (insert (concat (alist-get 'zettelID zettel) ">"))
-      (neuron--setup-overlays))))
+;; (defun company-neuron--post-completion-action (candidate)
+;;   "Delete the completed zettel title CANDIDATE and replace it with an actual neuron link."
+;;   (let ((begin (point))
+;;         (zettel (get-text-property 0 'zettel candidate)))
+;;     (when (re-search-backward (rx "<"))
+;;       (goto-char begin)
+;;       (delete-region begin (match-end 0))
+;;       (insert (concat (alist-get 'zettelID zettel) ">"))
+;;       (neuron--setup-overlays))))
 
-;;;###autoload
-(defun company-neuron (command &optional arg &rest ignored)
-  "Defines a company completion backend that completes zettels by title.
-COMMAND is the relevant command provided by company.
-ARG is the command argument, depending on which command was received.
-IGNORED is the rest of the arguments, not sure why it's there."
-  (interactive (list 'interactive))
-  (cl-case command
-    ((interactive) (company-begin-backend 'company-neuron-backend))
-    ((prefix) (company-neuron--prefix))
-    ((candidates) (company-neuron--candidates arg))
-    ((annotation) (company-neuron--completion-annotation arg))
-    ((meta) (company-neuron--completion-meta arg))
-    ((post-completion) (company-neuron--post-completion-action arg))
-    ((no-cache) 't)
-    ((ignore-case) t)))
+;; ;;;###autoload
+;; (defun company-neuron (command &optional arg &rest ignored)
+;;   "Defines a company completion backend that completes zettels by title.
+;; COMMAND is the relevant command provided by company.
+;; ARG is the command argument, depending on which command was received.
+;; IGNORED is the rest of the arguments, not sure why it's there."
+;;   (interactive (list 'interactive))
+;;   (cl-case command
+;;     ((interactive) (company-begin-backend 'company-neuron-backend))
+;;     ((prefix) (company-neuron--prefix))
+;;     ((candidates) (company-neuron--candidates arg))
+;;     ((annotation) (company-neuron--completion-annotation arg))
+;;     ((meta) (company-neuron--completion-meta arg))
+;;     ((post-completion) (company-neuron--post-completion-action arg))
+;;     ((no-cache) 't)
+;;     ((ignore-case) t)))
 
-;;;###autoload
-(defun company-neuron-setup ()
-  "Setup company to use the neuron backend."
-  (add-to-list 'company-backends 'company-neuron))
+;; ;;;###autoload
+;; (defun company-neuron-setup ()
+;;   "Setup company to use the neuron backend."
+;;   (add-to-list 'company-backends 'company-neuron))
 
 ;; Mode declaration
 
