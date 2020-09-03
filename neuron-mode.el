@@ -7,7 +7,7 @@
 ;; Homepage: https://github.com/felko/neuron-mode
 ;; Keywords: outlines
 ;; Package-Version: 0.1
-;; Package-Requires: ((emacs "26.3") (f "0.20.0") (s "1.12.0") (markdown-mode "2.3") (company "0.9.13"))
+;; Package-Requires: ((emacs "26.3") (f "0.20.0") (s "1.12.0") (markdown-mode "2.3"))
 ;;
 ;; This file is not part of GNU Emacs.
 
